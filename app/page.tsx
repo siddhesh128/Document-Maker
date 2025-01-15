@@ -8,7 +8,7 @@ import Table from '@tiptap/extension-table'
 import TableRow from '@tiptap/extension-table-row'
 import TableCell from '@tiptap/extension-table-cell'
 import TableHeader from '@tiptap/extension-table-header'
-import html2pdf from 'html2pdf.js'
+import dynamic from 'next/dynamic'
 import { DocumentToolbar } from './components/DocumentToolbar'
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -16,6 +16,11 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from 'lucide-react'
 import Mermaid from './components/Mermaid'
+
+const PDFExportButton = dynamic(
+  () => import('./components/PDFExportButton'),
+  { ssr: false }
+);
 
 export default function DocumentMaker() {
   const [code, setCode] = useState('')
@@ -42,20 +47,17 @@ export default function DocumentMaker() {
     editable: true,
   })
 
-  // Add this useEffect to update editor content
   useEffect(() => {
     if (editor && generatedContent) {
       editor.commands.setContent(generatedContent)
     }
   }, [editor, generatedContent])
 
-  // Add handler for Mermaid render completion
   const handleMermaidRender = useCallback(() => {
     console.log('Mermaid chart rendered');
     setIsFlowchartReady(true);
   }, []);
 
-  // Reset flowchart ready state when generating new content
   const handleGenerate = async () => {
     setIsFlowchartReady(false);
     if (!code.trim()) {
@@ -98,95 +100,14 @@ export default function DocumentMaker() {
     }
   }
 
-  const handleExport = useCallback(async () => {
-    console.log('Export function called');
-    if (!isFlowchartReady) {
-      console.log('Waiting for flowchart to render...');
-      return;
-    }
-    
-    try {
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      const mermaidContainer = document.querySelector('.mermaid');
-      if (!mermaidContainer) {
-        throw new Error('Flowchart container not found');
-      }
-
-      const flowchartElement = mermaidContainer.querySelector('svg');
-      if (!flowchartElement) {
-        throw new Error('Flowchart SVG not found');
-      }
-
-      let flowchartImage = '';
-      
-      // Clone the SVG and add necessary attributes
-      const svgClone = flowchartElement.cloneNode(true) as SVGElement;
-      svgClone.setAttribute('width', '800');
-      svgClone.setAttribute('height', '600');
-      svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-      
-      // Convert SVG to string with XML declaration
-      const svgData = new XMLSerializer().serializeToString(svgClone);
-      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-      
-      // Create object URL and image
-      flowchartImage = await new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          canvas.width = 800;
-          canvas.height = 600;
-          
-          // Add white background
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            resolve(canvas.toDataURL('image/png'));
-          } else {
-            reject(new Error('Failed to get canvas context'));
-          }
-        };
-        img.onerror = () => reject(new Error('Failed to load SVG'));
-        // Set crossOrigin to anonymous
-        img.crossOrigin = 'anonymous';
-        img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
-      });
-
-      // Create content for PDF
-      const content = document.createElement('div');
-      content.innerHTML = `
-        <div style="max-width: 800px; margin: 0 auto; padding: 20px;">
-          ${editor?.getHTML() || ''}
-          ${flowchartImage ? `
-            <div style="margin-top: 20px; page-break-before: always;">
-              <h2 style="margin-bottom: 1rem;">Code Flowchart</h2>
-              <img src="${flowchartImage}" style="max-width: 100%; height: auto;" />
-            </div>
-          ` : ''}
-        </div>
-      `;
-
-      const opt = {
-        margin: 1,
-        filename: 'documentation.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-          scale: 2,
-          logging: false,
-          useCORS: true
-        },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-      };
-
-      await html2pdf().set(opt).from(content).save();
-    } catch (error) {
-      console.error('Detailed export error:', error); // Enhanced error logging
-      setError('Failed to generate PDF');
-    }
-  }, [editor, flowchart, isFlowchartReady]);
+  const ExportButtonComponent = () => (
+    <PDFExportButton 
+      editor={editor}
+      flowchart={flowchart}
+      isFlowchartReady={isFlowchartReady}
+      setError={setError}
+    />
+  );
 
   return (
     <div className="container mx-auto p-4 space-y-6">
@@ -239,7 +160,10 @@ export default function DocumentMaker() {
             <CardTitle>Generated Documentation</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <DocumentToolbar editor={editor} onExport={handleExport} />
+            <DocumentToolbar 
+              editor={editor} 
+              ExportButton={ExportButtonComponent}
+            />
             <div className="prose prose-sm dark:prose-invert max-w-none h-[400px] overflow-y-auto p-4">
               {generatedContent ? (
                 <EditorContent editor={editor} />

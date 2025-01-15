@@ -32,11 +32,12 @@ interface ToolbarButtonProps {
 }
 
 interface DocumentToolbarProps {
-  editor: Editor | null
-  onExport: () => void
+  editor: Editor | null;
+  onExport?: () => void;
+  ExportButton?: React.ComponentType;
 }
 
-export function DocumentToolbar({ editor, onExport }: DocumentToolbarProps) {
+export function DocumentToolbar({ editor, ExportButton }: DocumentToolbarProps) {
   if (!editor) return null
 
   const ToolbarButton = ({ icon: Icon, title, action, isActive = false }: ToolbarButtonProps) => (
@@ -168,15 +169,7 @@ export function DocumentToolbar({ editor, onExport }: DocumentToolbarProps) {
       />
 
       <div className="ml-auto">
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={onExport}
-          className="flex items-center gap-2"
-        >
-          <FileDown className="h-4 w-4" />
-          Export PDF
-        </Button>
+        {ExportButton && <ExportButton />}
       </div>
     </div>
   )
