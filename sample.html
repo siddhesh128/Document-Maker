@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mermaid Diagram Examples</title>
+    <!-- Import Mermaid -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+
+        .diagram-container {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #333;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Mermaid Diagram Examples</h1>
+
+    <!-- Flowchart Example -->
+    <div class="diagram-container">
+        <h2>Flowchart Example</h2>
+        <div class="mermaid">
+graph TD
+    A[POST Request] --> B{Code Provided?}
+    B -->|Yes| C[Send Prompts]
+    B -->|No| D[Return 400 Error]
+    C --> E[Process Responseddindvindvknkdvnkdvndvjnvjjvdbj]
+    E --> F{Valid?}
+    F -->|Yes| G[Return Content]
+    F -->|No| H[Return Error]
+        </div>
+    </div>
+
+    <!-- Class Diagram Example -->
+    <div class="diagram-container">
+        <h2>Class Diagram Example</h2>
+        <div class="mermaid">
+classDiagram
+    class User {
+        +String username
+        +String email
+        -String password
+        +login()
+        +logout()
+        -validateCredentials()
+    }
+    class Admin {
+        +manageUsers()
+        +generateReports()
+    }
+    class Customer {
+        +placeOrder()
+        +viewHistory()
+    }
+    User <|-- Admin
+    User <|-- Customer
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                curve: 'linear',
+                padding: 20,
+                useMaxWidth: true
+            },
+            themeVariables: {
+                primaryColor: '#326ce5',
+                primaryTextColor: '#fff',
+                primaryBorderColor: '#285aa5',
+                lineColor: '#666',
+                secondaryColor: '#7F8C8D',
+                tertiaryColor: '#ECF0F1'
+            }
+        });
+    </script>
+</body>
+
+</html>
